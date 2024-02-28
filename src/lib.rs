@@ -6,7 +6,10 @@ pub mod crc;
 mod error;
 
 pub use address::Address;
-use embedded_hal::{digital::{InputPin, OutputPin}, delay::DelayNs};
+use embedded_hal::{
+    delay::DelayNs,
+    digital::{InputPin, OutputPin},
+};
 pub use error::{OneWireError, OneWireResult};
 
 pub const READ_SLOT_DURATION_MICROS: u16 = 70;
@@ -124,8 +127,8 @@ where
         output: &mut [u8],
         delay: &mut impl DelayNs,
     ) -> OneWireResult<(), E> {
-        for i in 0..output.len() {
-            output[i] = self.read_byte(delay)?;
+        for output in output.iter_mut() {
+            *output = self.read_byte(delay)?;
         }
         Ok(())
     }
@@ -148,11 +151,7 @@ where
         Ok(())
     }
 
-    pub fn write_bit(
-        &mut self,
-        value: bool,
-        delay: &mut impl DelayNs,
-    ) -> OneWireResult<(), E> {
+    pub fn write_bit(&mut self, value: bool, delay: &mut impl DelayNs) -> OneWireResult<(), E> {
         if value {
             self.write_1_bit(delay)
         } else {
@@ -160,11 +159,7 @@ where
         }
     }
 
-    pub fn write_byte(
-        &mut self,
-        mut value: u8,
-        delay: &mut impl DelayNs,
-    ) -> OneWireResult<(), E> {
+    pub fn write_byte(&mut self, mut value: u8, delay: &mut impl DelayNs) -> OneWireResult<(), E> {
         for _ in 0..8 {
             self.write_bit(value & 0x01 == 0x01, delay)?;
             value >>= 1;
@@ -172,13 +167,9 @@ where
         Ok(())
     }
 
-    pub fn write_bytes(
-        &mut self,
-        bytes: &[u8],
-        delay: &mut impl DelayNs,
-    ) -> OneWireResult<(), E> {
-        for i in 0..bytes.len() {
-            self.write_byte(bytes[i], delay)?;
+    pub fn write_bytes(&mut self, bytes: &[u8], delay: &mut impl DelayNs) -> OneWireResult<(), E> {
+        for byte in bytes {
+            self.write_byte(*byte, delay)?;
         }
         Ok(())
     }
