@@ -21,8 +21,8 @@ pub fn crc8(data: &[u8]) -> u8 {
 ///
 /// A nice property of this crc8 algorithm is that if you include the crc value in the data
 /// it will always return 0, so it's not needed to separate the data from the crc value
-pub fn check_crc8<E>(data: &[u8]) -> OneWireResult<(), E> {
-    if crc8(data) == 0 {
+pub fn check_crc8<E>(data: &[u8], ignore_crc_mismatch: bool) -> OneWireResult<(), E> {
+    if crc8(data) == 0 || ignore_crc_mismatch {
         Ok(())
     } else {
         Err(OneWireError::CrcMismatch)

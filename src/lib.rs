@@ -28,6 +28,7 @@ pub struct SearchState {
 
 pub struct OneWire<T> {
     pin: T,
+    ignore_crc_mismatch: bool,
 }
 
 impl<T, E> OneWire<T>
@@ -35,8 +36,11 @@ where
     T: InputPin<Error = E>,
     T: OutputPin<Error = E>,
 {
-    pub fn new(pin: T) -> OneWireResult<OneWire<T>, E> {
-        let mut one_wire = OneWire { pin };
+    pub fn new(pin: T, ignore_crc_mismatch: bool) -> OneWireResult<OneWire<T>, E> {
+        let mut one_wire = OneWire {
+            pin,
+            ignore_crc_mismatch,
+        };
         // Pin should be high during idle.
         one_wire.release_bus()?;
         Ok(one_wire)
@@ -345,7 +349,7 @@ where
             }
             self.write_bit(chosen_bit, delay)?;
         }
-        crc::check_crc8(&address.to_le_bytes())?;
+        crc::check_crc8(&address.to_le_bytes(), self.ignore_crc_mismatch)?;
         Ok(Some((
             Address(address),
             SearchState {
